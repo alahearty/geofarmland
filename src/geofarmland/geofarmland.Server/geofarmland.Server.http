@@ -1,0 +1,6 @@
+@geofarmland.Server_HostAddress = http://localhost:5048
+
+GET {{geofarmland.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
