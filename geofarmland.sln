@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "geofarmland.client", "src\geofarmland\geofarmland.client\geofarmland.client.esproj", "{28012325-1EC3-3F96-C524-1A945DB89FBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "geofarmland.Server", "src\geofarmland\geofarmland.Server\geofarmland.Server.csproj", "{6C945FCF-C3D0-43F4-A96A-7151EA01C073}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28012325-1EC3-3F96-C524-1A945DB89FBB}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{6C945FCF-C3D0-43F4-A96A-7151EA01C073}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C945FCF-C3D0-43F4-A96A-7151EA01C073}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C945FCF-C3D0-43F4-A96A-7151EA01C073}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C945FCF-C3D0-43F4-A96A-7151EA01C073}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{28012325-1EC3-3F96-C524-1A945DB89FBB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{6C945FCF-C3D0-43F4-A96A-7151EA01C073} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F8A1948A-DDB4-42BD-A41C-612DF09B5638}
+	EndGlobalSection
+EndGlobal
