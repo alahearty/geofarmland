@@ -3,7 +3,7 @@ using geofarmland.Server.Infrastructure.Persistence;
 using NetTopologySuite.Geometries;
 using System;
 
-namespace geofarmland.Server.Application.Features.Plots.UpdatePlot
+namespace geofarmland.Server.Features.Plots.UpdatePlot
 {
     public class UpdatePlotEndpoint : Endpoint<UpdatePlotRequest>
     {
@@ -23,7 +23,7 @@ namespace geofarmland.Server.Application.Features.Plots.UpdatePlot
         public override async Task HandleAsync(UpdatePlotRequest req, CancellationToken ct)
         {
             var id = Route<int>("id");
-            var plot = await _dbContext.Plots.FindAsync(id);
+            var plot = await _dbContext.Plots.FindAsync([id], ct);
             if (plot == null)
             {
                 await SendNotFoundAsync(ct);

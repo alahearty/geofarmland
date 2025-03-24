@@ -1,11 +1,10 @@
-﻿using geofarmland.Server.Application.Contracts;
-using geofarmland.Server.Domain.Entities;
+﻿using geofarmland.Server.Domain.Entities;
 using geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace geofarmland.Server.Infrastructure.Repositories
+namespace Geofarmland.Server.Infrastructure.Repositories
 {
-    public class PlotRepository : IPlotRepository
+    public class PlotRepository
     {
         private readonly ApplicationDbContext _db;
 

@@ -1,16 +1,17 @@
 ﻿using FastEndpoints;
-using geofarmland.Server.Application.Contracts;
 using NetTopologySuite.Geometries;
 using NetTopologySuite;
+using geofarmland.Server.Domain.Entities;
+using Geofarmland.Server.Infrastructure.Repositories;
 
-namespace geofarmland.Server.Application.Features.Plots.CreatePlot
+namespace geofarmland.Server.Features.Plots.CreatePlot
 {
     public class CreatePlotEndpoint : Endpoint<CreatePlotRequest>
     {
-        private readonly IPlotRepository _repo;
+        private readonly PlotRepository _repo;
         private readonly GeometryFactory _geometryFactory;
 
-        public CreatePlotEndpoint(IPlotRepository repo)
+        public CreatePlotEndpoint(PlotRepository repo)
         {
             _repo = repo;
             _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
@@ -25,10 +26,10 @@ namespace geofarmland.Server.Application.Features.Plots.CreatePlot
         public override async Task HandleAsync(CreatePlotRequest req, CancellationToken ct)
         {
             var polygon = _geometryFactory.CreatePolygon(req.Coordinates.Select(c => new Coordinate(c[0], c[1])).ToArray());
-            var plot = new Plot { Id = Guid.NewGuid(), Name = req.Name, Geometry = polygon };
+            var plot = new Plot { Id = 0, Name = req.Name, Geometry = polygon };
 
             await _repo.AddAsync(plot, ct);
-            await SendAsync(new { Message = "Plot Created", PlotId = plot.Id });
+            await SendAsync(new { Message = "Plot Created", PlotId = plot.Id }, cancellation: ct);
         }
     }
 }

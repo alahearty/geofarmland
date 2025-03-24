@@ -9,8 +9,6 @@ namespace geofarmland.Server.Infrastructure.Persistence
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(config.GetConnectionString("Postgres"), o => o.UseNetTopologySuite()));
 
-            services.AddScoped<IPostGISService, PostGISService>();
-
             return services;
         }
     }

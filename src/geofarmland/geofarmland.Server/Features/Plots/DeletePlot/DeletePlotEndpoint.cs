@@ -2,7 +2,7 @@
 using geofarmland.Server.Infrastructure.Persistence;
 using System;
 
-namespace geofarmland.Server.Application.Features.Plots.DeletePlot
+namespace geofarmland.Server.Features.Plots.DeletePlot
 {
     public class DeletePlotEndpoint : EndpointWithoutRequest
     {
@@ -22,7 +22,7 @@ namespace geofarmland.Server.Application.Features.Plots.DeletePlot
         public override async Task HandleAsync(CancellationToken ct)
         {
             var id = Route<int>("id");
-            var plot = await _dbContext.Plots.FindAsync(id);
+            var plot = await _dbContext.Plots.FindAsync([id], ct);
             if (plot == null)
             {
                 await SendNotFoundAsync(ct);
