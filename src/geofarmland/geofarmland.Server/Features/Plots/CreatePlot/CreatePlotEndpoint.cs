@@ -1,10 +1,10 @@
 ﻿using FastEndpoints;
 using NetTopologySuite.Geometries;
 using NetTopologySuite;
-using geofarmland.Server.Domain.Entities;
 using Geofarmland.Server.Infrastructure.Repositories;
+using Geofarmland.Server.Domain.Entities;
 
-namespace geofarmland.Server.Features.Plots.CreatePlot
+namespace Geofarmland.Server.Features.Plots.CreatePlot
 {
     public class CreatePlotEndpoint : Endpoint<CreatePlotRequest>
     {

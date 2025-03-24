@@ -1,5 +1,5 @@
-﻿using geofarmland.Server.Domain.Entities;
-using geofarmland.Server.Infrastructure.Persistence;
+﻿using Geofarmland.Server.Domain.Entities;
+using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Geofarmland.Server.Infrastructure.Repositories

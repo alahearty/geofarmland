@@ -1,8 +1,8 @@
 ﻿using FastEndpoints;
-using geofarmland.Server.Infrastructure.Persistence;
+using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace geofarmland.Server.Features.Plots.GetPlot
+namespace Geofarmland.Server.Features.Plots.GetPlot
 {
     public class GetPlotsEndpoint : EndpointWithoutRequest<List<GetPlotsResponse>>
     {

@@ -1,8 +1,7 @@
 ﻿using FastEndpoints;
-using geofarmland.Server.Infrastructure.Persistence;
-using System;
+using Geofarmland.Server.Infrastructure.Persistence;
 
-namespace geofarmland.Server.Features.Plots.DeletePlot
+namespace Geofarmland.Server.Features.Plots.DeletePlot
 {
     public class DeletePlotEndpoint : EndpointWithoutRequest
     {

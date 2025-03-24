@@ -1,9 +1,8 @@
 ﻿using FastEndpoints;
-using geofarmland.Server.Infrastructure.Persistence;
+using Geofarmland.Server.Infrastructure.Persistence;
 using NetTopologySuite.Geometries;
-using System;
 
-namespace geofarmland.Server.Features.Plots.UpdatePlot
+namespace Geofarmland.Server.Features.Plots.UpdatePlot
 {
     public class UpdatePlotEndpoint : Endpoint<UpdatePlotRequest>
     {

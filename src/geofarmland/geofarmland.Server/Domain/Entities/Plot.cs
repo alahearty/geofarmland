@@ -1,6 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 
-namespace geofarmland.Server.Domain.Entities
+namespace Geofarmland.Server.Domain.Entities
 {
     public class Plot : BaseEntity
     {

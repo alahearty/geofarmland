@@ -1,4 +1,4 @@
-﻿namespace geofarmland.Server.Features.Plots.UpdatePlot
+﻿namespace Geofarmland.Server.Features.Plots.UpdatePlot
 {
     public class UpdatePlotRequest
     {

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace geofarmland.Server.Features.Plots.CreatePlot
+namespace Geofarmland.Server.Features.Plots.CreatePlot
 {
     public class CreatePlotValidator : AbstractValidator<CreatePlotRequest>
     {

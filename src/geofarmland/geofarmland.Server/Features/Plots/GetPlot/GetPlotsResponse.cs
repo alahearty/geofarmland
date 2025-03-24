@@ -1,4 +1,4 @@
-﻿namespace geofarmland.Server.Features.Plots.GetPlot
+﻿namespace Geofarmland.Server.Features.Plots.GetPlot
 {
     public record GetPlotsResponse
     {

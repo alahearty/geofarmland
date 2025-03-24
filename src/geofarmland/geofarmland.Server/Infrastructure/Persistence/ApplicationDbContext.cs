@@ -1,13 +1,15 @@
-﻿using geofarmland.Server.Domain.Entities;
+﻿using Geofarmland.Server.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace geofarmland.Server.Infrastructure.Persistence
+namespace Geofarmland.Server.Infrastructure.Persistence
 {
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<Plot> Plots { get; set; }
+        public DbSet<Hydrology> Hydrologys { get; set; }
+        public DbSet<SensorData> SensorData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

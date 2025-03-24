@@ -1,5 +1,5 @@
 using FastEndpoints;
-using geofarmland.Server.Infrastructure.Persistence;
+using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 
