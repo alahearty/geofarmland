@@ -20,7 +20,7 @@ namespace Geofarmland.Server.Infrastructure.Repositories
 
         public async Task<Hydrology?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Hydrologys.FindAsync(new object[] { id }, cancellationToken);
+            return await _context.Hydrologys.FindAsync([id], cancellationToken);
         }
 
         public async Task AddAsync(Hydrology hydrology, CancellationToken cancellationToken = default)
@@ -31,7 +31,7 @@ namespace Geofarmland.Server.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.Hydrologys.FindAsync(new object[] { id }, cancellationToken);
+            var entity = await _context.Hydrologys.FindAsync([id], cancellationToken);
             if (entity != null)
             {
                 _context.Hydrologys.Remove(entity);
