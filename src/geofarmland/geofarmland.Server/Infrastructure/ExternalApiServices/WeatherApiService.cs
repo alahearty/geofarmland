@@ -11,7 +11,7 @@
 
         public async Task<string> GetWeatherDataAsync(double lat, double lon)
         {
-            var apiKey = "YOUR_OPENWEATHERMAP_API_KEY";
+            var apiKey = string.Empty;
             var url = $"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apiKey}&units=metric";
 
             var response = await _httpClient.GetStringAsync(url);
