@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using Geofarmland.Server.Infrastructure.Persistence;
 
 namespace Geofarmland.Server.Features.Plots.DeletePlot
@@ -15,7 +15,7 @@ namespace Geofarmland.Server.Features.Plots.DeletePlot
         public override void Configure()
         {
             Delete("/plots/{id}");
-            AllowAnonymous();
+            Policies("Authenticated");
         }
 
         public override async Task HandleAsync(CancellationToken ct)

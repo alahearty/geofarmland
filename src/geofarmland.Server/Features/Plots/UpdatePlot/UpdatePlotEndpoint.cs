@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using Geofarmland.Server.Infrastructure.Persistence;
 using NetTopologySuite.Geometries;
 
@@ -16,7 +16,7 @@ namespace Geofarmland.Server.Features.Plots.UpdatePlot
         public override void Configure()
         {
             Put("/plots/{id}");
-            AllowAnonymous();
+            Policies("Authenticated");
         }
 
         public override async Task HandleAsync(UpdatePlotRequest req, CancellationToken ct)

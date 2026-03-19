@@ -1,21 +1,25 @@
-﻿using Geofarmland.Server.Domain.Entities;
+using Geofarmland.Server.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Geofarmland.Server.Infrastructure.Persistence
+namespace Geofarmland.Server.Infrastructure.Persistence;
+
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
-    public class ApplicationDbContext : DbContext
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    public DbSet<Plot> Plots { get; set; }
+    public DbSet<Hydrology> Hydrologys { get; set; }
+    public DbSet<SensorData> SensorData { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        base.OnModelCreating(modelBuilder);
 
-        public DbSet<Plot> Plots { get; set; }
-        public DbSet<Hydrology> Hydrologys { get; set; }
-        public DbSet<SensorData> SensorData { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Plot>()
-                .Property(p => p.Geometry)
-                .HasColumnType("geometry");
-        }
+        modelBuilder.Entity<Plot>()
+            .Property(p => p.Geometry)
+            .HasColumnType("geometry");
     }
 }

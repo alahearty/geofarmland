@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using NetTopologySuite.Geometries;
 using NetTopologySuite;
 using Geofarmland.Server.Infrastructure.Repositories;
@@ -20,7 +20,7 @@ namespace Geofarmland.Server.Features.Plots.CreatePlot
         public override void Configure()
         {
             Post("/plots");
-            AllowAnonymous();
+            Policies("Authenticated");
         }
 
         public override async Task HandleAsync(CreatePlotRequest req, CancellationToken ct)

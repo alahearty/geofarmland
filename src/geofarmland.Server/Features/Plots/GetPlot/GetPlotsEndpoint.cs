@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +16,7 @@ namespace Geofarmland.Server.Features.Plots.GetPlot
         public override void Configure()
         {
             Get("/plots");
-            AllowAnonymous();
+            Policies("Authenticated");
         }
 
         public override async Task HandleAsync(CancellationToken ct)
