@@ -48,8 +48,15 @@ export const useAuthStore = defineStore('auth', () => {
     return data
   }
 
-  function logout() {
-    clearAuth()
+  async function logout() {
+    const token = refreshToken.value
+    try {
+      if (token) await authApi.logout(token)
+    } catch {
+      // Local sign-out still succeeds when the server session has already expired.
+    } finally {
+      clearAuth()
+    }
   }
 
   return {

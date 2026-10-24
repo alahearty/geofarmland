@@ -1,7 +1,8 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using FastEndpoints;
 using FastEndpoints.Security;
 using Geofarmland.Server.Domain.Entities;
+using Geofarmland.Server.Features.Auth.RefreshToken;
 using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
     {
         Post("/api/auth/login");
         AllowAnonymous();
+        Throttle(20, 60);
     }
 
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
@@ -42,7 +44,12 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
             return;
         }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: false);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, req.Password, lockoutOnFailure: true);
+        if (result.IsLockedOut)
+        {
+            ThrowError("Account temporarily locked after repeated failed sign-in attempts. Try again later.", 429);
+            return;
+        }
         if (!result.Succeeded)
         {
             await SendUnauthorizedAsync(ct);
@@ -56,7 +63,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         await SendOkAsync(new LoginResponse
         {
             AccessToken = accessToken,
-            RefreshToken = refreshToken.Token,
+            RefreshToken = refreshToken.RawToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
             Email = user.Email!,
             FullName = user.FullName,
@@ -86,21 +93,24 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
             });
     }
 
-    private async Task<Domain.Entities.RefreshToken> CreateRefreshTokenEntityAsync(string userId, CancellationToken ct)
+    private async Task<(Domain.Entities.RefreshToken Entity, string RawToken)> CreateRefreshTokenEntityAsync(string userId, CancellationToken ct)
     {
         var days = int.Parse(_config["Jwt:RefreshTokenExpirationDays"] ?? "7");
+        var rawToken = RefreshTokenHasher.Generate();
         var token = new Domain.Entities.RefreshToken
         {
-            Token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64)),
+            Token = RefreshTokenHasher.Hash(rawToken),
             UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddDays(days),
             CreatedAt = DateTime.UtcNow
         };
         _db.RefreshTokens.Add(token);
         await _db.SaveChangesAsync(ct);
-        return token;
+        return (token, rawToken);
     }
 
     private int GetAccessTokenExpirationMinutes() =>
         int.TryParse(_config["Jwt:AccessTokenExpirationMinutes"], out var m) ? m : 60;
 }
+
+

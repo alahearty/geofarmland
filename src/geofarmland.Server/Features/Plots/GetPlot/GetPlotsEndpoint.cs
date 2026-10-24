@@ -1,4 +1,5 @@
-using FastEndpoints;
+﻿using FastEndpoints;
+using Geofarmland.Server.Shared;
 using Geofarmland.Server.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,16 +22,32 @@ namespace Geofarmland.Server.Features.Plots.GetPlot
 
         public override async Task HandleAsync(CancellationToken ct)
         {
-            var plots = await _dbContext.Plots
-                .Select(p => new GetPlotsResponse
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Coordinates = p.Geometry.Coordinates.Select(c => new List<double> { c.X, c.Y }).ToList()
-                })
-                .ToListAsync(ct);
+            var userId = CurrentUser.Id(User);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                await SendUnauthorizedAsync(ct);
+                return;
+            }
 
-            await SendAsync(plots, cancellation: ct);
+            var query = _dbContext.Plots.AsNoTracking();
+            if (!CurrentUser.IsAdmin(User))
+                query = query.Where(plot => plot.OwnerId == userId);
+
+            var plots = await query.ToListAsync(ct);
+
+            var response = plots
+                .Select(plot => new GetPlotsResponse
+                {
+                    Id = plot.Id,
+                    Name = plot.Name,
+                    Coordinates = plot.Geometry.Coordinates
+                        .Select(coordinate => new List<double> { coordinate.X, coordinate.Y })
+                        .ToList()
+                })
+                .ToList();
+
+            await SendAsync(response, cancellation: ct);
         }
     }
 }
+

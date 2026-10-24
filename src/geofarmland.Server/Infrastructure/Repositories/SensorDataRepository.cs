@@ -18,6 +18,22 @@ namespace Geofarmland.Server.Infrastructure.Repositories
             return await _context.SensorData.ToListAsync();
         }
 
+        public async Task<IReadOnlyList<SensorData>> GetRecentAsync(
+            string? ownerId,
+            bool includeAllOwners,
+            int take,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.SensorData.AsNoTracking();
+            if (!includeAllOwners)
+                query = query.Where(reading => reading.OwnerId == ownerId);
+
+            return await query
+                .OrderByDescending(reading => reading.Timestamp)
+                .Take(Math.Clamp(take, 1, 100))
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<SensorData?> GetByIdAsync(int id)
         {
             return await _context.SensorData.FindAsync(id);

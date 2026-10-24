@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import AppShell from '@/components/AppShell.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,9 +19,26 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'Home',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { requiresAuth: true }
+      component: AppShell,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'Home',
+          component: () => import('@/views/DashboardView.vue')
+        },
+        {
+          path: 'account',
+          name: 'Account',
+          component: () => import('@/views/AccountView.vue')
+        },
+        {
+          path: 'admin',
+          name: 'Admin',
+          component: () => import('@/views/AdminView.vue'),
+          meta: { admin: true }
+        }
+      ]
     },
     {
       path: '/:pathMatch(.*)*',
@@ -51,6 +69,11 @@ router.beforeEach(async (to, _from, next) => {
       next({ name: 'Login' })
       return
     }
+  }
+
+  if (to.meta.admin && !authStore.isAdmin) {
+    next({ name: 'Home' })
+    return
   }
 
   next()

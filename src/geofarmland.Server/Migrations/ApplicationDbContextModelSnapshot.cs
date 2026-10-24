@@ -94,6 +94,43 @@ namespace geofarmland.Server.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.Device", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PlotId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlotId");
+
+                    b.HasIndex("OwnerId", "DeviceId")
+                        .IsUnique();
+
+                    b.ToTable("Devices");
+                });
+
             modelBuilder.Entity("Geofarmland.Server.Domain.Entities.Hydrology", b =>
                 {
                     b.Property<int>("Id")
@@ -138,9 +175,15 @@ namespace geofarmland.Server.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("OwnerId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Plots");
                 });
@@ -172,6 +215,9 @@ namespace geofarmland.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Token")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
@@ -185,19 +231,96 @@ namespace geofarmland.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("SensorType")
+                    b.Property<string>("DeviceId")
                         .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("OwnerId")
                         .HasColumnType("text");
+
+                    b.Property<double>("Rainfall")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("SoilMoisture")
+                        .HasColumnType("double precision");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<double>("Value")
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("SensorData");
+                });
+
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.WeatherSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<double>("FeelsLikeC")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("FetchedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("Humidity")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PlotId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Pressure")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("TemperatureC")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("WindSpeed")
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SensorData");
+                    b.HasIndex("OwnerId", "FetchedAtUtc");
+
+                    b.HasIndex("PlotId", "FetchedAtUtc");
+
+                    b.ToTable("WeatherSnapshots");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -332,6 +455,33 @@ namespace geofarmland.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.Device", b =>
+                {
+                    b.HasOne("Geofarmland.Server.Domain.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Geofarmland.Server.Domain.Entities.Plot", "Plot")
+                        .WithMany()
+                        .HasForeignKey("PlotId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Plot");
+                });
+
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.Plot", b =>
+                {
+                    b.HasOne("Geofarmland.Server.Domain.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("Geofarmland.Server.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("Geofarmland.Server.Domain.Entities.ApplicationUser", "User")
@@ -341,6 +491,33 @@ namespace geofarmland.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.SensorData", b =>
+                {
+                    b.HasOne("Geofarmland.Server.Domain.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Geofarmland.Server.Domain.Entities.WeatherSnapshot", b =>
+                {
+                    b.HasOne("Geofarmland.Server.Domain.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Geofarmland.Server.Domain.Entities.Plot", "Plot")
+                        .WithMany()
+                        .HasForeignKey("PlotId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Plot");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

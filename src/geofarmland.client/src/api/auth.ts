@@ -1,4 +1,4 @@
-import api from './client'
+﻿import api from './client'
 
 export interface LoginRequest {
   email: string
@@ -37,5 +37,15 @@ export const authApi = {
   refresh: (refreshToken: string) =>
     api.post<AuthResponse>('/api/auth/refresh', { refreshToken } as { refreshToken: string }),
 
+  logout: (refreshToken: string) =>
+    api.post('/api/auth/logout', { refreshToken } as { refreshToken: string }),
+
+  updateProfile: (fullName: string) =>
+    api.put<UserResponse>('/api/auth/me', { fullName }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/api/auth/change-password', { currentPassword, newPassword }),
+
   me: () => api.get<UserResponse>('/api/auth/me')
 }
+

@@ -1,4 +1,4 @@
-namespace Geofarmland.Server.Features.Auth.Login;
+﻿namespace Geofarmland.Server.Features.Auth.Login;
 
 public class LoginResponse
 {
@@ -7,5 +7,6 @@ public class LoginResponse
     public DateTime ExpiresAt { get; set; }
     public string Email { get; set; } = string.Empty;
     public string? FullName { get; set; }
-    public IList<string> Roles { get; set; } = [];
+    public IList<string> Roles { get; init; } = [];
 }
+

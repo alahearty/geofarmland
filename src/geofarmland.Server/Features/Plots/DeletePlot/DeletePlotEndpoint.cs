@@ -1,5 +1,7 @@
-using FastEndpoints;
+﻿using FastEndpoints;
+using Geofarmland.Server.Shared;
 using Geofarmland.Server.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Geofarmland.Server.Features.Plots.DeletePlot
 {
@@ -21,8 +23,8 @@ namespace Geofarmland.Server.Features.Plots.DeletePlot
         public override async Task HandleAsync(CancellationToken ct)
         {
             var id = Route<int>("id");
-            var plot = await _dbContext.Plots.FindAsync([id], ct);
-            if (plot == null)
+            var plot = await _dbContext.Plots.SingleOrDefaultAsync(x => x.Id == id, ct);
+            if (plot == null || !CurrentUser.CanAccess(plot.OwnerId, User))
             {
                 await SendNotFoundAsync(ct);
                 return;
@@ -35,3 +37,4 @@ namespace Geofarmland.Server.Features.Plots.DeletePlot
         }
     }
 }
+

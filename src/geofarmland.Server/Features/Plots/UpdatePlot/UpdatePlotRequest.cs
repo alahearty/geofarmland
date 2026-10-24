@@ -3,7 +3,6 @@
     public class UpdatePlotRequest
     {
         public required string Name { get; set; }
-        public required List<List<List<double>>> Coordinates { get; init; }
+        public required double[][] Coordinates { get; set; }
     }
-
 }

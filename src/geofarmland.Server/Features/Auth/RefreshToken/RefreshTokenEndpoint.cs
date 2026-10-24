@@ -26,13 +26,21 @@ public class RefreshTokenEndpoint : Endpoint<RefreshTokenRequest, LoginResponse>
     {
         Post("/api/auth/refresh");
         AllowAnonymous();
+        Throttle(30, 60);
     }
 
     public override async Task HandleAsync(RefreshTokenRequest req, CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(req.RefreshToken))
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
+        var tokenHash = RefreshTokenHasher.Hash(req.RefreshToken);
         var token = await _db.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == req.RefreshToken && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow, ct);
+            .FirstOrDefaultAsync(rt => rt.Token == tokenHash && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow, ct);
 
         if (token == null)
         {
@@ -40,8 +48,15 @@ public class RefreshTokenEndpoint : Endpoint<RefreshTokenRequest, LoginResponse>
             return;
         }
 
-        token.IsRevoked = true;
-        await _db.SaveChangesAsync(ct);
+        // Conditional update closes the race where two requests try to rotate the same token.
+        var revoked = await _db.RefreshTokens
+            .Where(rt => rt.Id == token.Id && !rt.IsRevoked)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(rt => rt.IsRevoked, true), ct);
+        if (revoked == 0)
+        {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
 
         var user = token.User;
         var roles = await _userManager.GetRolesAsync(user);
@@ -51,7 +66,7 @@ public class RefreshTokenEndpoint : Endpoint<RefreshTokenRequest, LoginResponse>
         await SendOkAsync(new LoginResponse
         {
             AccessToken = accessToken,
-            RefreshToken = newRefreshToken.Token,
+            RefreshToken = newRefreshToken.RawToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
             Email = user.Email!,
             FullName = user.FullName,
@@ -81,19 +96,20 @@ public class RefreshTokenEndpoint : Endpoint<RefreshTokenRequest, LoginResponse>
             });
     }
 
-    private async Task<Domain.Entities.RefreshToken> CreateRefreshTokenAsync(string userId, CancellationToken ct)
+    private async Task<(Domain.Entities.RefreshToken Entity, string RawToken)> CreateRefreshTokenAsync(string userId, CancellationToken ct)
     {
         var days = int.Parse(_config["Jwt:RefreshTokenExpirationDays"] ?? "7");
+        var rawToken = RefreshTokenHasher.Generate();
         var token = new Domain.Entities.RefreshToken
         {
-            Token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64)),
+            Token = RefreshTokenHasher.Hash(rawToken),
             UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddDays(days),
             CreatedAt = DateTime.UtcNow
         };
         _db.RefreshTokens.Add(token);
         await _db.SaveChangesAsync(ct);
-        return token;
+        return (token, rawToken);
     }
 
     private int GetAccessTokenExpirationMinutes() =>

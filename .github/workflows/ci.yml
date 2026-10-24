@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend build and tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: worisoft@123
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create test database and PostGIS extension
+        env:
+          PGPASSWORD: worisoft@123
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE geofarmland_test;"
+          psql -h localhost -U postgres -d geofarmland_test -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+      - name: Restore
+        run: dotnet restore tests/Geofarmland.Server.Tests/Geofarmland.Server.Tests.csproj
+      - name: Build
+        run: dotnet build tests/Geofarmland.Server.Tests/Geofarmland.Server.Tests.csproj --configuration Release --no-restore
+      - name: Test
+        run: dotnet test tests/Geofarmland.Server.Tests/Geofarmland.Server.Tests.csproj --configuration Release --no-build
+
+  client:
+    name: Client build and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/geofarmland.client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/geofarmland.client/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Production build and type-check
+        run: npm run build
