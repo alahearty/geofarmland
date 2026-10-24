@@ -32,7 +32,7 @@ onMounted(load)
     <div class="page-heading">
       <p class="eyebrow">Administration</p>
       <h1>Admin overview</h1>
-      <p>Platform-wide accounts and resource counts. Plot and device data remain owner-scoped for regular users.</p>
+      <p>Platform-wide accounts and resource counts. Enterprise farm and parcel data is organisation-scoped for regular users.</p>
     </div>
 
     <div v-if="loading" class="state">Loading platform overview...</div>
@@ -41,7 +41,10 @@ onMounted(load)
       <div class="stats">
         <div class="stat"><span>Users</span><strong>{{ overview.users }}</strong></div>
         <div class="stat"><span>Admins</span><strong>{{ overview.admins }}</strong></div>
-        <div class="stat"><span>Plots</span><strong>{{ overview.plots }}</strong></div>
+        <div class="stat"><span>Organisations</span><strong>{{ overview.organizations }}</strong></div>
+        <div class="stat"><span>Farms</span><strong>{{ overview.farms }}</strong></div>
+        <div class="stat"><span>Land parcels</span><strong>{{ overview.landParcels }}</strong></div>
+        <div class="stat"><span>Legacy plots</span><strong>{{ overview.plots }}</strong></div>
         <div class="stat"><span>Devices</span><strong>{{ overview.devices }}</strong></div>
         <div class="stat"><span>Sensor readings</span><strong>{{ overview.readings }}</strong></div>
       </div>
@@ -88,7 +91,7 @@ onMounted(load)
 .eyebrow { margin: 0 0 0.3rem; color: #6b7c70; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 h1 { margin: 0; font-size: 1.6rem; }
 .page-heading > p:last-child { margin: 0.35rem 0 0; color: #6b7c70; font-size: 0.9rem; max-width: 760px; line-height: 1.5; }
-.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
 .stat { background: white; border: 1px solid #e2e8e2; border-radius: 10px; padding: 0.9rem; box-shadow: 0 2px 8px rgba(26, 71, 42, 0.05); }
 .stat span { display: block; color: #6b7c70; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .stat strong { display: block; margin-top: 0.35rem; font-size: 1.5rem; color: #1a472a; }

@@ -1,12 +1,18 @@
-﻿# GeoFarmland
+# GeoFarmland
 
 ## Overview
 
 GeoFarmland is a geospatial farm-management backend with a Vue 3 single-page front-end. It provides
-JWT authentication, plot (farmland polygon) CRUD stored as PostGIS geometry, a live weather proxy,
-and an IoT sensor-data ingestion endpoint that broadcasts readings over SignalR.
+JWT authentication, organisation-scoped farms and land parcels stored as PostGIS geometry, an
+enterprise operations dashboard, a GIS explorer, a live weather proxy, and an IoT sensor-data
+ingestion endpoint that broadcasts readings over SignalR.
 
 The back end is built with ASP.NET Core 9 and FastEndpoints. The front end is a Vite/Vue 3 app.
+
+The current release covers the enterprise foundation plus the operational modules for crops,
+livestock, aquaculture, greenhouses, soil and irrigation, IoT monitoring, analytics, field
+operations, inventory, finance and administration. Remote sensing is presented as an honest
+readiness view until an imagery provider is configured.
 
 ## Problem statement
 
@@ -170,7 +176,9 @@ if you need a non-default proxy target.
 | Administrator | `admin@geofarmland.com` | `Admin@123456` |
 | Farmer | `farmer@geofarmland.com` | `Farmer@123456` |
 
-The farmer account owns a separate demo plot and device, which demonstrates owner isolation against the administrator view.
+Both accounts belong to the seeded **GeoFarmland Estate** organisation. The administrator is an
+organisation administrator; the farmer is a read-only field member for enterprise parcels, while
+the legacy field map remains owner-scoped. Existing demo plots are migrated into land parcels.
 
 ## Main API endpoints
 
@@ -183,8 +191,28 @@ The farmer account owns a separate demo plot and device, which demonstrates owne
 | PUT | `/api/auth/me` | Bearer | Update the display name |
 | POST | `/api/auth/change-password` | Bearer | Change the password and revoke refresh sessions |
 | POST | `/api/auth/logout` | No | Revoke the supplied refresh token |
-| GET | `/api/admin/overview` | Admin | User and resource summary |
-| GET | `/plots` | Bearer | List the current user's plots (Admin sees all) |
+| GET | `/api/admin/overview` | Admin | Platform, organisation, farm, parcel and resource summary |
+| GET | `/api/enterprise/context` | Bearer | Active organisation, memberships, roles and management permissions |
+| GET | `/api/enterprise/overview` | Bearer | Organisation-scoped KPIs, farms, land use, parcels, telemetry and weather |
+| GET | `/api/farms` | Bearer | List farms in the active organisation |
+| POST | `/api/farms` | Manager/Admin | Create a farm |
+| PUT | `/api/farms/{id}` | Manager/Admin | Update a farm |
+| DELETE | `/api/farms/{id}` | Manager/Admin | Delete a farm when it has no parcels |
+| GET | `/api/land-parcels` | Bearer | Filtered, paginated land parcel register with geometry |
+| POST | `/api/land-parcels` | Field role/Admin | Create a validated, non-overlapping land parcel |
+| PUT | `/api/land-parcels/{id}` | Field role/Admin | Update parcel metadata or boundary |
+| DELETE | `/api/land-parcels/{id}` | Field role/Admin | Delete a land parcel |
+| GET/POST/PUT/DELETE | `/api/crops`, `/api/crop-seasons`, `/api/crop-seasons/{id}/harvests` | Bearer/Field role | Crop catalogue, seasons and harvest records with yield metrics |
+| GET/POST/PUT/DELETE | `/api/livestock/overview`, `/api/livestock/groups`, `/api/livestock/groups/{id}/events` | Bearer/Field role | Livestock groups, grazing links and event history |
+| GET/POST/PUT/DELETE | `/api/aquaculture/overview`, `/api/aquaculture/ponds` | Bearer/Field role | Aquaculture ponds, stock and production area |
+| GET/POST/PUT/DELETE | `/api/greenhouses/overview`, `/api/greenhouses/units` | Bearer/Field role | Protected production units, structure and crop focus |
+| GET/POST/PUT/DELETE | `/api/soil/overview`, `/api/soil/samples`, `/api/soil/irrigation` | Bearer/Field role | Soil chemistry, nutrient results and irrigation applications |
+| GET/POST/PUT/DELETE | `/api/operations/overview`, `/api/operations/tasks` | Bearer/Field role | Field task board, completion and overdue tracking |
+| GET/POST/PUT/DELETE | `/api/inventory/overview`, `/api/inventory/items` | Bearer/Field role | Stock levels, reorder thresholds and stock value |
+| GET/POST/PUT/DELETE | `/api/finance/overview`, `/api/finance/records` | Bearer/Field role | Revenue, expense and net-position ledger |
+| GET | `/api/iot/overview` | Bearer | Org-scoped device fleet, latest telemetry and heartbeat metrics |
+| GET | `/api/analytics/overview` | Bearer | Cross-module production, yield, livestock, land-use and telemetry analytics |
+| GET | `/plots` | Bearer | List the current user's legacy plots (Admin sees all) |
 | GET | `/plots/{id}` | Bearer | Read one owned plot (Admin sees all) |
 | POST | `/plots` | Bearer | Create a plot owned by the current user |
 | PUT | `/plots/{id}` | Bearer | Update an owned plot |
@@ -220,27 +248,48 @@ Backend features:
 - Current weather with extended metrics, persisted weather history and three-hour forecast support.
 - Authenticated weather/SignalR surfaces and configurable CORS origins.
 - Refresh-token rotation with hashed storage, logout revocation, account lockout and per-endpoint throttling.
-- Administrator overview for accounts and resource totals.
-- Automatic migrations and seeded administrator/farmer demo accounts.
+- Administrator overview for accounts and enterprise resource totals.
+- Organisations and role-based memberships (`OrganizationAdministrator`, `FarmManager`, `Agronomist`,
+  `FieldOfficer`, `Farmer`, `Viewer`) with organisation-level isolation.
+- Farms and land parcels with PostGIS geometry, geodesic hectare calculation, land use, tenure,
+  status, ownership linkage and automatic migration of existing plots into the enterprise register.
+- Polygon validation, self-intersection rejection and overlap detection within the same farm.
+- Automatic migrations and seeded administrator/farmer demo accounts and enterprise workspace.
 
 Front end features:
 
-- Login, registration, authenticated dashboard, account settings and administrator overview.
-- Interactive Leaflet map with OpenStreetMap tiles.
-- Plot polygons rendered from the API, a synchronized plot list, selection, zoom-to-plot,
-  details panel and computed area in hectares.
-- Drawing and editing modes: create, rename, drag vertices, add/remove vertices, undo and save through `PUT /plots/{id}`.
-- Device registration and selection from the dashboard, linked to owned plots.
-- Live weather, richer current conditions, stored weather history and forecast display.
-- "IoT sensor monitor" with a device-bound synthetic reading form and live SignalR updates.
-- Live connection status, loading/empty/error states, map resizing, and responsive sidebar behaviour.
+- Login, registration, enterprise shell with grouped navigation, responsive sidebar and organisation context.
+- Executive dashboard with live KPIs, land-use composition, farm performance, recent parcels,
+  weather and field telemetry.
+- GIS explorer with searchable parcel list, status filters, interactive PostGIS-backed Leaflet map,
+  selection, zoom-to-parcel and parcel details.
+- Farms and land parcels register with farm creation, parcel creation/editing, boundary drawing,
+  search, filters and delete actions.
+- Crop catalogue, season cycles, harvest logging and yield attainment tracking.
+- Livestock group register, grazing parcel links, health/weight/movement/sale events and automatic
+  head-count and average-weight updates.
+- Aquaculture pond register with water type, system type, stock, average weight and area.
+- Greenhouse/plantation unit register with structure type, covered area, current crop and status.
+- Soil sample and irrigation event registers with pH, organic matter, nutrient values and water volume.
+- Field operations board with pending, in-progress and completed tasks, overdue detection and completion actions.
+- Inventory register with stock, reorder thresholds, low-stock status and stock value.
+- Revenue/expense finance ledger with net-position reporting.
+- IoT fleet view with parcel-linked devices, heartbeat state and telemetry submission.
+- Analytics view with monthly harvest trend, crop performance, land use, livestock mix, forecast
+  projection and telemetry signals.
+- Weather monitoring view with stored observation timeline and live provider lookup.
+- Remote sensing readiness view showing parcel coverage and the explicit imagery-provider gap.
+- Account settings and platform administrator overview.
+- Existing field map editor retained at `/field-map` for legacy plot drawing, reshaping, weather and
+  synthetic IoT monitoring.
+- Live connection status, loading/empty/error states, map resizing and responsive behaviour.
 
 The map is centred on Cape Town because the project is a South African farmland prototype. The
 admin account can draw a plot anywhere in the world.
 
 ## Testing
 
-The repository includes ten ASP.NET Core integration tests in
+The repository includes twenty-one ASP.NET Core integration tests in
 `tests/Geofarmland.Server.Tests`. They use `WebApplicationFactory` against the isolated
 `geofarmland_test` database.
 
@@ -248,7 +297,7 @@ The repository includes ten ASP.NET Core integration tests in
 dotnet test tests\Geofarmland.Server.Tests\Geofarmland.Server.Tests.csproj
 ```
 
-Expected result: `Passed: 10`.
+Expected result: `Passed: 21`.
 
 Client checks (utility and Account/Admin component tests, then the production build):
 
@@ -258,7 +307,7 @@ npm run test:unit
 npm run build
 ```
 
-Expected result: 6 Vitest tests pass and the type-check/build succeeds. The CI workflow runs
+Expected result: 11 Vitest tests pass and the type-check/build succeeds. The CI workflow runs
 both suites with a PostGIS service container.
 
 The tests cover:
@@ -272,6 +321,11 @@ The tests cover:
 - Device registration CRUD, IoT ingestion and history for the full device/coordinate/rainfall/moisture payload.
 - Refresh-token rotation, reuse rejection and logout revocation.
 - Profile update, administrator overview, weather history/forecast failure behavior, and authenticated weather/IoT access.
+- Enterprise organisation isolation and read-only farmer permissions.
+- Crop catalogue, crop season, harvest and yield analytics; livestock group/event head-count and weight updates.
+- Parcel-linked device telemetry and IoT overview heartbeat metrics.
+- Field task overdue/completion workflow; soil sample and irrigation metrics.
+- Inventory low-stock/value calculations and finance revenue/expense/net-position calculations.
 
 Manual UI smoke test:
 
@@ -304,8 +358,17 @@ Manual UI smoke test:
   them before any real deployment.
 - CORS origins are configured under `Cors:AllowedOrigins`; add the deployed SPA origin before
   hosting outside local development.
-- The browser client connects to SignalR while the dashboard is open; there is no global
+- The browser client connects to SignalR while the legacy field map is open; there is no global
   notification center or background push while the app is closed.
+- Remote sensing has no imagery provider configured, so the UI shows parcel readiness and integration
+  status instead of synthetic NDVI or scene data.
+- Aquaculture currently stores current pond stock and average weight; a separate stocking/health
+  event history is not implemented yet.
+- Inventory equipment is registered as stock items; maintenance scheduling and work-order linkage
+  are not implemented yet.
+- Finance is a revenue/expense ledger without tax, accounting periods, bank reconciliation or budgets.
+- The legacy `/plots` API and field map editor remain for compatibility. Existing plots are backfilled
+  into land parcels at startup; new enterprise land parcels should be created through `/api/land-parcels`.
 
 
 

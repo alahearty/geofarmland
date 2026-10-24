@@ -1,4 +1,6 @@
 ﻿using Geofarmland.Server.Domain.Entities;
+using Geofarmland.Server.Domain.Enums;
+using Geofarmland.Server.Shared;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +17,10 @@ public static class DataSeeder
     public const string AdminRole = "Admin";
     public const string FarmerEmail = "farmer@geofarmland.com";
     public const string FarmerPassword = "Farmer@123456";
+    public const string DemoOrganizationName = "GeoFarmland Estate";
+    public const string DemoOrganizationSlug = "geofarmland-estate";
+    public const string DemoFarmCode = "CFE-001";
+    public const string DemoFarmName = "Cape Flats Estate";
 
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
@@ -125,6 +131,121 @@ public static class DataSeeder
 
             await EnsureDemoDeviceAsync(db, farmer.Id, "field-sensor-02", "Farmer field sensor", farmerPlot.Id);
         }
+
+        await EnsureEnterpriseDemoAsync(db, adminUser?.Id, farmer?.Id, logger);
+    }
+
+    private static async Task EnsureEnterpriseDemoAsync(
+        ApplicationDbContext db,
+        string? adminUserId,
+        string? farmerUserId,
+        ILogger logger)
+    {
+        var organization = await db.Organizations
+            .FirstOrDefaultAsync(item => item.Slug == DemoOrganizationSlug);
+        if (organization == null)
+        {
+            organization = new Organization
+            {
+                Name = DemoOrganizationName,
+                Slug = DemoOrganizationSlug,
+                Country = "South Africa",
+                CurrencyCode = "ZAR",
+                TimeZone = "Africa/Johannesburg",
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Organizations.Add(organization);
+            await db.SaveChangesAsync();
+            logger.LogInformation("Seeded enterprise organization {Organization}.", organization.Name);
+        }
+
+        await EnsureMemberAsync(db, organization.Id, adminUserId, OrganizationRole.OrganizationAdministrator);
+        await EnsureMemberAsync(db, organization.Id, farmerUserId, OrganizationRole.Farmer);
+
+        var farm = await db.Farms
+            .FirstOrDefaultAsync(item => item.OrganizationId == organization.Id && item.Code == DemoFarmCode);
+        if (farm == null)
+        {
+            farm = new Farm
+            {
+                OrganizationId = organization.Id,
+                Name = DemoFarmName,
+                Code = DemoFarmCode,
+                Region = "Western Cape",
+                Country = "South Africa",
+                Description = "Primary demonstration farm for the GeoFarmland enterprise workspace.",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            db.Farms.Add(farm);
+            await db.SaveChangesAsync();
+            logger.LogInformation("Seeded demo farm {Farm}.", farm.Name);
+        }
+
+        var legacyPlots = await db.Plots
+            .Where(plot => plot.Geometry != null)
+            .ToListAsync();
+        var parcelsAdded = 0;
+        foreach (var plot in legacyPlots)
+        {
+            if (plot.Geometry is not Polygon polygon)
+                continue;
+            if (await db.LandParcels.AnyAsync(parcel => parcel.LegacyPlotId == plot.Id))
+                continue;
+
+            db.LandParcels.Add(new LandParcel
+            {
+                OrganizationId = organization.Id,
+                FarmId = farm.Id,
+                Name = plot.Name,
+                Geometry = polygon,
+                AreaHectares = GeoMeasurement.AreaHectares(polygon),
+                LandUse = LandUseType.Cropland,
+                TenureType = TenureType.Owned,
+                Status = LandParcelStatus.Active,
+                LegacyPlotId = plot.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            parcelsAdded++;
+        }
+
+        if (parcelsAdded > 0)
+        {
+            await db.SaveChangesAsync();
+            logger.LogInformation("Migrated {Count} legacy plots into the enterprise land parcel register.", parcelsAdded);
+        }
+    }
+
+    private static async Task EnsureMemberAsync(
+        ApplicationDbContext db,
+        int organizationId,
+        string? userId,
+        OrganizationRole role)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return;
+
+        var member = await db.OrganizationMembers
+            .FirstOrDefaultAsync(item => item.OrganizationId == organizationId && item.UserId == userId);
+        if (member != null)
+        {
+            if (!member.IsActive)
+            {
+                member.IsActive = true;
+                await db.SaveChangesAsync();
+            }
+            return;
+        }
+
+        db.OrganizationMembers.Add(new OrganizationMember
+        {
+            OrganizationId = organizationId,
+            UserId = userId,
+            Role = role,
+            JoinedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
     }
 
     private static async Task EnsureDemoDeviceAsync(ApplicationDbContext db, string ownerId, string deviceId, string name, int? plotId)

@@ -11,6 +11,9 @@ public sealed record AdminUserDto(string Id, string Email, string? FullName, IRe
 public sealed record AdminOverviewResponse(
     int Users,
     int Admins,
+    int Organizations,
+    int Farms,
+    int LandParcels,
     int Plots,
     int Devices,
     int Readings,
@@ -58,6 +61,9 @@ public class AdminOverviewEndpoint : EndpointWithoutRequest<AdminOverviewRespons
         await SendAsync(new AdminOverviewResponse(
             allUsers.Count,
             admins.Count,
+            await _db.Organizations.CountAsync(ct),
+            await _db.Farms.CountAsync(ct),
+            await _db.LandParcels.CountAsync(ct),
             await _db.Plots.CountAsync(ct),
             await _db.Devices.CountAsync(ct),
             await _db.SensorData.CountAsync(ct),

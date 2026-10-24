@@ -6,6 +6,9 @@ export interface Device {
   name: string
   plotId: number | null
   plotName: string | null
+  landParcelId?: number | null
+  landParcelName?: string | null
+  farmName?: string | null
   createdAt: string
 }
 
@@ -13,6 +16,7 @@ export interface DeviceRequest {
   deviceId: string
   name: string
   plotId?: number | null
+  landParcelId?: number | null
 }
 
 export const devicesApi = {

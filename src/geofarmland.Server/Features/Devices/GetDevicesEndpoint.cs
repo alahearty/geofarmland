@@ -30,7 +30,12 @@ public class GetDevicesEndpoint : EndpointWithoutRequest<List<DeviceResponse>>
             return;
         }
 
-        var query = _db.Devices.AsNoTracking().Include(d => d.Plot).AsQueryable();
+        var query = _db.Devices
+            .AsNoTracking()
+            .Include(d => d.Plot)
+            .Include(d => d.LandParcel)
+            .ThenInclude(parcel => parcel!.Farm)
+            .AsQueryable();
         if (!CurrentUser.IsAdmin(User))
             query = query.Where(d => d.OwnerId == ownerId);
 
@@ -44,6 +49,9 @@ public class GetDevicesEndpoint : EndpointWithoutRequest<List<DeviceResponse>>
         device.Name,
         device.PlotId,
         device.Plot?.Name,
+        device.LandParcelId,
+        device.LandParcel?.Name,
+        device.LandParcel?.Farm?.Name,
         device.CreatedAt);
 }
 

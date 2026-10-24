@@ -11,6 +11,9 @@ export interface AdminUser {
 export interface AdminOverview {
   users: number
   admins: number
+  organizations: number
+  farms: number
+  landParcels: number
   plots: number
   devices: number
   readings: number

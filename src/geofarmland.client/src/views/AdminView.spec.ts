@@ -10,6 +10,9 @@ vi.mock('@/api/admin', () => ({
       data: {
         users: 12,
         admins: 1,
+        organizations: 2,
+        farms: 3,
+        landParcels: 7,
         plots: 7,
         devices: 4,
         readings: 22,

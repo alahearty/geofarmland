@@ -23,7 +23,11 @@ public class UpdateDeviceEndpoint : Endpoint<DeviceRequest, DeviceResponse>
     public override async Task HandleAsync(DeviceRequest req, CancellationToken ct)
     {
         var id = Route<int>("id");
-        var device = await _db.Devices.Include(d => d.Plot).SingleOrDefaultAsync(d => d.Id == id, ct);
+        var device = await _db.Devices
+            .Include(d => d.Plot)
+            .Include(d => d.LandParcel)
+            .ThenInclude(parcel => parcel!.Farm)
+            .SingleOrDefaultAsync(d => d.Id == id, ct);
         if (device == null || !CurrentUser.CanAccess(device.OwnerId, User))
         {
             await SendNotFoundAsync(ct);
@@ -50,6 +54,13 @@ public class UpdateDeviceEndpoint : Endpoint<DeviceRequest, DeviceResponse>
             }
         }
 
+        if (req.LandParcelId.HasValue
+            && !await CanUseLandParcelAsync(req.LandParcelId.Value, device.OwnerId ?? string.Empty, ct))
+        {
+            ThrowError("The selected land parcel does not belong to the device owner's organization.");
+            return;
+        }
+
         if (await _db.Devices.AnyAsync(d => d.Id != id && d.OwnerId == device.OwnerId && d.DeviceId == deviceId, ct))
         {
             ThrowError("A device with that ID is already registered.");
@@ -59,12 +70,32 @@ public class UpdateDeviceEndpoint : Endpoint<DeviceRequest, DeviceResponse>
         device.DeviceId = deviceId;
         device.Name = name;
         device.PlotId = req.PlotId;
+        device.LandParcelId = req.LandParcelId;
         await _db.SaveChangesAsync(ct);
 
-        var plot = req.PlotId.HasValue
-            ? await _db.Plots.AsNoTracking().SingleOrDefaultAsync(p => p.Id == req.PlotId.Value, ct)
-            : null;
+        var updated = await _db.Devices
+            .AsNoTracking()
+            .Include(item => item.Plot)
+            .Include(item => item.LandParcel)
+            .ThenInclude(parcel => parcel!.Farm)
+            .SingleAsync(item => item.Id == id, ct);
 
-        await SendAsync(new DeviceResponse(device.Id, device.DeviceId, device.Name, device.PlotId, plot?.Name, device.CreatedAt), cancellation: ct);
+        await SendAsync(GetDevicesEndpoint.ToResponse(updated), cancellation: ct);
+    }
+
+    private async Task<bool> CanUseLandParcelAsync(int landParcelId, string ownerId, CancellationToken ct)
+    {
+        var organizationId = await _db.LandParcels
+            .Where(parcel => parcel.Id == landParcelId)
+            .Select(parcel => (int?)parcel.OrganizationId)
+            .FirstOrDefaultAsync(ct);
+        if (!organizationId.HasValue)
+            return false;
+        if (CurrentUser.IsAdmin(User))
+            return true;
+        return await _db.OrganizationMembers.AnyAsync(member =>
+            member.OrganizationId == organizationId.Value
+            && member.UserId == ownerId
+            && member.IsActive, ct);
     }
 }
