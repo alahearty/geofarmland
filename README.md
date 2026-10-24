@@ -1,4 +1,4 @@
-# GeoFarmland
+# GeoFarmland — Enterprise Agricultural Management Platform
 
 ## Overview
 
@@ -14,23 +14,45 @@ livestock, aquaculture, greenhouses, soil and irrigation, IoT monitoring, analyt
 operations, inventory, finance and administration. Remote sensing is presented as an honest
 readiness view until an imagery provider is configured.
 
+## Final-year project summary
+
+GeoFarmland has evolved from a field-mapping prototype into a working modular farm-management
+platform. It keeps the original PostGIS plot editor while adding an organisation-scoped enterprise
+register and the operational records needed to run a mixed farm: land, crops, livestock,
+aquaculture, protected production, soil and water, devices, field work, inventory and finance.
+
+The implementation demonstrates:
+
+- organisation membership and role-based access instead of a single owner-only demo;
+- spatial data management with parcel boundaries, land use, tenure, hectare calculations and
+  overlap validation;
+- production workflows with crop seasons and harvests, livestock events, aquaculture stock,
+  greenhouses, soil samples and irrigation;
+- operational workflows for tasks, devices, telemetry, analytics, inventory and finance;
+- evidence-safe behaviour: weather, remote sensing and forecasts do not fabricate missing data;
+- backend integration tests, frontend unit tests, migrations and a browser-tested UI.
+
 ## Problem statement
 
-Small-scale farmers need a simple way to record field boundaries and monitor local conditions.
-GeoFarmland demonstrates how a web application can store field polygons in a spatial database and
-combine that data with weather and IoT feeds.
+Farm records are commonly split across maps, notebooks, spreadsheets and disconnected sensor
+dashboards. GeoFarmland demonstrates how one agricultural platform can preserve spatial context
+while connecting land parcels to production, field operations, telemetry and business records.
 
 ## Aim
 
-To provide a GIS-enabled farm-management prototype that stores field boundaries spatially and presents them with weather and IoT context in a usable web interface.
+To provide a GIS-enabled, organisation-scoped farm-management platform that stores land parcels
+spatially and connects them to production, monitoring, operations and financial records in a usable
+enterprise interface.
 
 ## Objectives
 
-- Provide secure registration, login, refresh-token and profile endpoints.
-- Store farmland plots as PostGIS polygons and expose CRUD operations.
-- Accept IoT sensor readings and broadcast them to connected clients with SignalR.
-- Provide a live-weather lookup using an external weather API.
-- Offer a minimal browser UI for authentication and a dashboard.
+- Provide secure registration, login, refresh-token, profile and organisation membership handling.
+- Store farms and land parcels as PostGIS geometries with validation, land-use and tenure metadata.
+- Support crop, livestock, aquaculture, greenhouse, soil and irrigation production records.
+- Provide a GIS explorer, operational dashboard, analytics and field task board.
+- Accept device telemetry and broadcast readings through authenticated SignalR.
+- Provide weather, IoT, inventory, finance, reporting and administrative views.
+- Preserve the original field-map editor and legacy plot API for compatibility.
 
 ## Technology stack
 
@@ -137,6 +159,17 @@ dotnet build
 ```
 
 ## Run
+
+### One-click Windows launcher
+
+Double-click **`run.cmd`**, or right-click **`run.ps1` → Run with PowerShell**.
+
+The launcher checks .NET and Node.js, installs frontend dependencies if needed, starts the backend on
+`http://localhost:58036` and the Vite frontend on `https://localhost:64210`, then opens the
+frontend. PostgreSQL must be running; the backend applies migrations and seeds the demonstration
+workspace automatically.
+
+### Manual run
 
 Recommended single-process run (API + built SPA):
 
